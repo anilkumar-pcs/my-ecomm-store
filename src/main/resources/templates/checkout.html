@@ -233,6 +233,12 @@
                 document.getElementById("paymentCurrency").textContent = "N/A";
             }
 
+            // Clear the cart as payment is complete
+            localStorage.removeItem('cart');
+            
+            // Clear the cart total cookie
+            document.cookie = "cartTotal=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
             // Display the modal
             modal.style.display = "block";
 
