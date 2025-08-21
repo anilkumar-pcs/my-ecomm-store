@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.CookieValue;
 
 import jakarta.annotation.PostConstruct;
 
@@ -71,18 +72,18 @@ public class CheckoutController {
        PUBLIC ENDPOINT
        ========================================================================= */
     @GetMapping("/checkout")
-    public String showCheckout(@RequestParam(required = false) String total, Model model) {
+    public String showCheckout(@CookieValue(name = "cartTotal", required = false) String cartTotal, Model model) {
 
         try {
-            /* Update the total amount in the payload if provided ------------------- */
-            if (total != null && !total.isEmpty()) {
+            /* Update the total amount in the payload if provided in cookie ---------- */
+            if (cartTotal != null && !cartTotal.isEmpty()) {
                 // Update the payloadJson object
-                ((ObjectNode) payloadJson.path("orderInformation").path("amountDetails")).put("totalAmount", total);
+                ((ObjectNode) payloadJson.path("orderInformation").path("amountDetails")).put("totalAmount", cartTotal);
                 
                 // Update the requestData object with the new payload
                 requestData.setPayload(objectMapper.writeValueAsString(payloadJson));
                 
-                System.out.println("Updated order amount to: " + total);
+                System.out.println("Updated order amount from cookie to: " + cartTotal);
             }
             
             /* CyberSource round-trip ------------------------------------------------ */

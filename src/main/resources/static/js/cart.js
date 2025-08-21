@@ -62,6 +62,17 @@ class Cart {
         document.getElementById('cart-count').textContent = count;
     }
 
+    // Helper function to set a cookie
+    setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
+    }
+
     updateCartDisplay() {
         const cartItems = document.getElementById('cart-items');
         const cartTotal = document.getElementById('cart-total');
@@ -90,9 +101,12 @@ class Cart {
         const total = this.getTotal();
         cartTotal.textContent = `$${total.toFixed(2)}`;
         
-        // Update the checkout link to include the total as a URL parameter
+        // Set a cookie with the cart total
+        this.setCookie("cartTotal", total.toFixed(2), 1);
+        
+        // Update the checkout link (no need for URL parameter anymore)
         if (checkoutLink) {
-            checkoutLink.href = `/checkout?total=${total.toFixed(2)}`;
+            checkoutLink.href = "/checkout";
         }
     }
 }

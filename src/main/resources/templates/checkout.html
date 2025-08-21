@@ -149,20 +149,21 @@
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             orderTotal.textContent = `$${total.toFixed(2)}`;
             
-            // Check if the URL already has a total parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.has('total') && total > 0) {
-                // Add the total to the URL without refreshing the page
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.set('total', total.toFixed(2));
-                window.history.replaceState({}, '', newUrl);
-                
-                // If the page was just loaded and there's no total parameter,
-                // we need to reload with the total parameter to ensure the server gets it
-                if (performance.navigation.type !== 1) { // Not a reload
-                    window.location.href = newUrl.toString();
-                    return; // Stop execution to prevent double processing
+            // Set a cookie with the cart total to ensure the server gets it
+            if (total > 0) {
+                // Helper function to set a cookie
+                function setCookie(name, value, days) {
+                    let expires = "";
+                    if (days) {
+                        const date = new Date();
+                        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                        expires = "; expires=" + date.toUTCString();
+                    }
+                    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
                 }
+                
+                // Set the cartTotal cookie
+                setCookie("cartTotal", total.toFixed(2), 1);
             }
             
             orderItems.innerHTML = cart.map(item => `
