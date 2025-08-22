@@ -133,7 +133,6 @@
             <div class="next-steps">
                 <h3>Next Steps</h3>
                 <ul>
-                    <li>Your payment has been processed successfully.</li>
                     <li>You can refer to the <a href="https://developer.cybersource.com/docs/cybs/en-us/unified-checkout/developer/all/rest/unified-checkout/uc-intro.html" target="_blank">Unified checkout documentation</a> for more details.</li>
                 </ul>
             </div>
@@ -208,9 +207,86 @@
         function showPaymentModal(paymentDetails) {
             // Get the modal element
             const modal = document.getElementById("paymentModal");
+            
+            // Get payment status
+            const paymentStatus = paymentDetails.status || paymentDetails.outcome || "COMPLETED";
+            
+            // Update payment success/failure message based on status
+            const paymentSuccessDiv = document.querySelector(".payment-success");
+            if (paymentStatus === "AUTHORIZED") {
+                // Payment was successful
+                paymentSuccessDiv.innerHTML = "<h2>Payment Successful!</h2>";
+                paymentSuccessDiv.style.color = "#28a745"; // Green color for success
+                
+                // Hide any error details section if it exists
+                const errorDetailsSection = document.getElementById("errorDetails");
+                if (errorDetailsSection) {
+                    errorDetailsSection.style.display = "none";
+                }
+            } else {
+                // Payment failed
+                paymentSuccessDiv.innerHTML = "<h2>Payment Failed!</h2>";
+                paymentSuccessDiv.style.color = "#dc3545"; // Red color for failure
+                
+                // Create or update error details section
+                let errorDetailsSection = document.getElementById("errorDetails");
+                if (!errorDetailsSection) {
+                    // Create the section if it doesn't exist
+                    errorDetailsSection = document.createElement("div");
+                    errorDetailsSection.id = "errorDetails";
+                    errorDetailsSection.className = "error-details";
+                    errorDetailsSection.style.marginBottom = "20px";
+                    errorDetailsSection.style.padding = "10px";
+                    errorDetailsSection.style.backgroundColor = "#f8d7da";
+                    errorDetailsSection.style.borderRadius = "5px";
+                    errorDetailsSection.style.color = "#721c24";
+                    
+                    // Insert it after the payment-success div
+                    paymentSuccessDiv.parentNode.insertBefore(errorDetailsSection, paymentSuccessDiv.nextSibling);
+                } else {
+                    // Clear existing content if the section already exists
+                    errorDetailsSection.innerHTML = "";
+                    errorDetailsSection.style.display = "block";
+                }
+                
+                // Add heading
+                const errorHeading = document.createElement("h3");
+                errorHeading.textContent = "Error Details:";
+                errorHeading.style.marginBottom = "10px";
+                errorDetailsSection.appendChild(errorHeading);
+                
+                // Check if there are specific validation errors to display
+                if (paymentDetails.details && paymentDetails.details.details && paymentDetails.details.details.length > 0) {
+                    
+                    // Add error details
+                    const errorList = document.createElement("ul");
+                    errorList.style.paddingLeft = "20px";
+                    
+                    paymentDetails.details.details.forEach(detail => {
+                        const errorItem = document.createElement("li");
+                        errorItem.textContent = `Field: ${detail.field} - Reason: ${detail.reason}`;
+                        errorList.appendChild(errorItem);
+                    });
+                    
+                    errorDetailsSection.appendChild(errorList);
+                } else {
+                    // If no specific field errors, display the general error message
+                    const errorMessage = document.createElement("p");
+                    errorMessage.textContent = paymentDetails.message || "An error occurred during payment processing.";
+                    errorDetailsSection.appendChild(errorMessage);
+                    
+                    // If there's a reason in the details, display it too
+                    if (paymentDetails.details && paymentDetails.details.reason) {
+                        const reasonMessage = document.createElement("p");
+                        reasonMessage.style.marginTop = "10px";
+                        reasonMessage.textContent = `Reason: ${paymentDetails.details.reason}`;
+                        errorDetailsSection.appendChild(reasonMessage);
+                    }
+                }
+            }
 
             // Set payment details in the modal
-            document.getElementById("paymentStatus").textContent = paymentDetails.status || paymentDetails.outcome || "COMPLETED";
+            document.getElementById("paymentStatus").textContent = paymentStatus;
             document.getElementById("paymentMessage").textContent = paymentDetails.message || "Transaction processed";
 
             // Get transaction ID from processor information if available
